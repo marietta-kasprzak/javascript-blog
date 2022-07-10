@@ -1,19 +1,19 @@
+'use strict';
 const templates = {
-  articleLink: Handlebars.compile(document.querySelector('#template-article-link').innerHTML)
-  linkTag: Handlebars.compile(document.querySelector('#template-tag-link').innerHTML)
-  linkAuthor: Handlebars.compile(document.querySelector('#template-link-author').innerHTML)
+  articleLink: Handlebars.compile(document.querySelector('#template-article-link').innerHTML),
+  linkTag: Handlebars.compile(document.querySelector('#template-tag-link').innerHTML),
+  linkAuthor: Handlebars.compile(document.querySelector('#template-link-author').innerHTML),
   tagCloudLink: Handlebars.compile(document.querySelector('#template-tag-cloud-link').innerHTML),
   authorsCloudLink: Handlebars.compile(document.querySelector('#template-author-cloud-link').innerHTML),
 };
 
 
-'use strict';
 const optArticleSelector = '.post',
   optTitleSelector = '.post-title',
   optTitleListSelector = '.titles',
   optArticleTagsSelector = '.post-tags .list',
   optArticleAuthorSelector = '.author',
-  optAuthorsListSelector = '.author .list',
+  optAuthorsListSelector = '.authors.list' ,
   optTagsListSelector = '.tags.list',
   optCloudClassCount = 5,
   optCloudClassPrefix = 'tag-size-'
@@ -58,11 +58,13 @@ function generateTitleLinks(customSelector = '') {
     /* get the article id */
     const articleID = article.getAttribute('id');
     /* find the title element */
-    const articleTitle = article.querySelector(optTitleSelector).innerHTML;
+    const articleTitleElement = article.querySelector(optTitleSelector);
+    /* get the title from the title elemrny */
+    const articleTitle = articleTitleElement.innerHTML;
+
+    /* create HTML of the link */
     const linkHTMLData = { id: articleID, title: articleTitle };
     const linkHTML = templates.articleLink(linkHTMLData);
-    console.log(linkHTML);
-    /* create HTML of the link */
     /* insert link into titleList */
     html = html + linkHTML;
   }
@@ -75,39 +77,6 @@ function generateTitleLinks(customSelector = '') {
 generateTitleLinks();
 
 
-
-function generateTags() {
-  /* find all articles */
-  const articles = document.querySelectorAll(optArticleSelector);
-  /* START LOOP: for every article: */
-  for (let article of articles) {
-    /* find tags wrapper */
-    const tags = article.querySelector(optArticleTagsSelector);
-    /* make html variable with empty string */
-    let html = '';
-    /* get tags from data-tags attribute */
-    const articleTags = article.getAttribute('data-tags');
-    /* split tags into array */
-    const articleTagsArray = articleTags.split(' ');
-    /* START LOOP: for each tag */
-    for (let tag of articleTagsArray) {
-      /* generate HTML of the link */     
-      const articleTagsData = {id: tag, title: articleTags};
-      const articleTags= templates.linkTag(articleTagData);
-    
-
-      // TU DODAC SZABLON
-      /* add generated code to html variable */
-      html = html + linkTag;
-    }
-    /* END LOOP: for each tag */
-    tags.innerHTML = html;
-  }
-  /* insert HTML of all the links into the tags wrapper */
-
-  /* END LOOP: for every article: */
-}
-generateTags();
 
 function tagClickHandler(event) {
   /* prevent default action for this event */
@@ -148,22 +117,29 @@ function addClickListenersToTags() {
     /* END LOOP: for each link */
   }
 }
-addClickListenersToTags();
 
 
 function generateAuthors() {
   const articles = document.querySelectorAll(optArticleSelector);
+  const authors = [];
   for (let article of articles) {
-    const author = article.querySelector(optAuthorsListSelector);
+    const author = article.querySelector(optArticleAuthorSelector);
     let html = '';
     const articleAuthor = article.getAttribute('data-author');
     const linkAuthorData = {id: articleAuthor, title: articleAuthor};
-    const linkAuthor = templates.articleAuthor(linkAuthorData);
+    const linkAuthor = templates.linkAuthor(linkAuthorData);
 
-
+    if (!authors.includes(articleAuthor)){
+      authors.push(articleAuthor);
+    }
     html = html + linkAuthor;
+    author.innerHTML = linkAuthor;
   }
-  author.innerHTML = linkAuthor;
+
+  console.log(templates.authorsCloudLink({authors:authors}));
+  
+ const authorsList = document.querySelector(optAuthorsListSelector);
+ authorsList.innerHTML = templates.authorsCloudLink({authors:authors})
 }
 generateAuthors();
 
@@ -198,9 +174,9 @@ function authorClickHandler(event) {
 }
 
 
-function calculateTagsParams() {
+function calculateTagsParams(tags) {
   const params = { max: 0, min: 9999 }
-  for (let tag of tagLinks) {
+  for (let tag in tags) {
     console.log(tag + ' is used ' + tags[tag] + ' times');
     if (tags[tag] > params.max) {
       params.max = tags[tag];
@@ -217,8 +193,8 @@ function calculateTagClass(count, params) {
   const normalizedMax = params.max - params.min;
   const percentage = normalizedCount / normalizedMax;
   const classNumber = Math.floor(percentage * (optCloudClassCount - 1) + 1);
+  return optCloudClassPrefix + classNumber;
 }
-calculateTagClass(optCloudClassPrefix, classNumber);
 
 function generateTags() {
   /* [NEW] create a new variable allTags with an empty object */
@@ -236,10 +212,11 @@ function generateTags() {
     /* split tags into array */
     const articleTagsArray = articleTags.split(' ');
     /* START LOOP: for each tag */
-    for (let tag of articleTags) {
+    for (let tag of articleTagsArray) {
       /* generate HTML of the link */
-      const linkTag = '<li><a href="#tag-' + tag + '"><span>' + tag + '</span></a></li>';
-      /* add generated code to html variable */
+      const articleTagData = {id: tag, title: tag};
+      const linkTag= templates.linkTag(articleTagData);
+            /* add generated code to html variable */
       html = html + linkTag;
       /* [NEW] check if this link is NOT already in allTags */
       if (!allTags[tag]) {
@@ -276,7 +253,10 @@ function generateTags() {
 
   /*[NEW] add HTML from allTagsHTML to tagList */
   tagList.innerHTML = templates.tagCloudLink(allTagsData);
-  console.log = (allTagsData)
 
 }
+
+generateTags();
+addClickListenersToTags();
+
 
