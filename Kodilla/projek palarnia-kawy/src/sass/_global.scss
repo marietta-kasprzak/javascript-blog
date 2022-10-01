@@ -1,0 +1,22 @@
+@import './bootstrap',
+
+body {
+  background-color: $white;
+  color: $black;
+}
+
+
+.header {
+  padding: ($base-size * 5) 0 ($base-size * 8) 0;
+  background-image: image();
+  color: $black;
+
+  &__wrapper {
+    position: relative;
+  }
+
+}
+
+h1 {
+  color: $mongoose;
+}
